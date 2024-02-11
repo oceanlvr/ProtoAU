@@ -1,0 +1,7 @@
+__pycache__/
+wandb/*
+results/*
+*.log
+nohup.out
+*.png
+!.env
