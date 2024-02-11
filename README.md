@@ -1,9 +1,7 @@
 # ProtoAU
 
 Pytorch implementation of ProtoAU for recomandation.
-
 We present the **Proto**typical contrastive learning through **A**lignment and **U**niformity for recommendation, which is called **ProtoAU**.
-
 A contrastive learning method for recommendation that excels in capturing intricate relationships between user and item interactions, which enhance the basic GNN-based recommendation model's generalization ability and robustness.
 
 Thanks for following our work! :)
@@ -58,61 +56,40 @@ wandb agent --count 5 oceanlvr/sweep_parallel/[xxx] # replace the [xxx] with you
 <div>
  <table class="table table-hover table-bordered">
   <tr>
-    <th rowspan="2" scope="col">Data Set</th>
-    <th colspan="5" scope="col" class="text-center">Basic Meta</th>
-    <th colspan="3" scope="col" class="text-center">User Context</th> 
-    </tr>
+    <th rowspan="2" scope="col">DataSet</th>
   <tr>
     <th class="text-center">Users</th>
     <th class="text-center">Items</th>
-    <th colspan="2" class="text-center">Ratings (Scale)</th>
+    <th class="text-center">Ratings</th>
     <th class="text-center">Density</th>
-    <th class="text-center">Users</th>
-    <th colspan="2" class="text-center">Links (Type)</th>
     </tr>   
    <tr>
     <td><a href="https://pan.baidu.com/s/1hrJP6rq" target="_blank"><b>Douban</b></a> </td>
     <td>2,848</td>
     <td>39,586</td>
-    <td width="6%">894,887</td>
-    <td width="10%">[1, 5]</td>
+    <td>894,887</td>
     <td>0.794%</td>
-    <td width="4%">2,848</td>
-    <td width="5%">35,770</td>
-    <td>Trust</td>
     </tr> 
 	 <tr>
     <td><a href="http://files.grouplens.org/datasets/hetrec2011/hetrec2011-lastfm-2k.zip" target="_blank"><b>LastFM</b></a> </td>
     <td>1,892</td>
     <td>17,632</td>
-    <td width="6%">92,834</td>
-    <td width="10%">implicit</td>
+    <td>92,834</td>
     <td>0.27%</td>
-    <td width="4%">1,892</td>
-    <td width="5%">25,434</td>
-    <td>Trust</td>
     </tr> 
     <tr>
     <td><a href="https://www.dropbox.com/sh/h97ymblxt80txq5/AABfSLXcTu0Beib4r8P5I5sNa?dl=0" target="_blank"><b>Yelp</b></a> </td>
     <td>19,539</td>
     <td>21,266</td>
-    <td width="6%">450,884</td>
-    <td width="10%">implicit</td>
+    <td>450,884</td>
     <td>0.11%</td>
-    <td width="4%">19,539</td>
-    <td width="5%">864,157</td>
-    <td>Trust</td>
     </tr>
     <tr>
     <td><a href="https://www.dropbox.com/sh/20l0xdjuw0b3lo8/AABBZbRg9hHiN42EHqBSvLpta?dl=0" target="_blank"><b>Amazon-Book</b></a> </td>
     <td>52,463</td>
     <td>91,599</td>
-    <td width="6%">2,984,108</td>
-    <td width="10%">implicit</td>
+    <td>2,984,108</td>
     <td>0.11%</td>
-    <td width="4%">-</td>
-    <td width="5%">-</td>
-    <td>-</td>
     </tr>  
   </table>
 </div>
@@ -124,3 +101,6 @@ wandb agent --count 5 oceanlvr/sweep_parallel/[xxx] # replace the [xxx] with you
 - https://github.com/RUCAIBox/RecBole2.0
 
 
+## Cite
+
+Please cite our paper ([arXiv:2402.02079](arxiv.org/abs/2402.02079)) if you use this code.
