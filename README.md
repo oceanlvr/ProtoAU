@@ -1,29 +1,31 @@
 # ProtoAU
 
-we present the **Proto**typical contrastive learning through **A**lignment and **U**niformity for recommendation, which is called **ProtoAU**. 
+Pytorch implementation of ProtoAU for recomandation.
+
+We present the **Proto**typical contrastive learning through **A**lignment and **U**niformity for recommendation, which is called **ProtoAU**.
 
 A contrastive learning method for recommendation that excels in capturing intricate relationships between user and item interactions, which enhance the basic GNN-based recommendation model's generalization ability and robustness.
 
+Thanks for following our work! :)
+
 ## Prepare
 
-There are two environment: nvidia-docker environment or normal environment.
+There are two environment you can choose: nvidia-docker environment or normal environment.
 
-For nvidia-docker users, you need to install nvidia-docker2 and restart docker service.
+- For nvidia-docker users, you need to install nvidia-docker2 and restart docker service.
 
 ```sh
 # docker env
 docker build -t protoau .
 docker run -itd --gpus all --name protoau
-docker exec -it protoau /bin/bash
+docker exec -it protoau /bin/bash # enter the container
 ```
 
-For normal users, you need to install pytorch and other packages.
-
-here we use follow environment:
-
-- pytorch 1.9 (GPU version)
-- CUDA 11.1
-- cudnn 8
+- For normal users, you need to install pytorch and other packages. here we use follow environment:
+  - Python 3.6
+  - Pytorch 1.9 (GPU version)
+  - CUDA 11.1
+  - cudnn 8
 
 then run follow command to install other packages:
 
@@ -31,21 +33,25 @@ then run follow command to install other packages:
 pip install -r requirements.txt
 ```
 
-## Usage
+## Quickstart
 
-Train
+- Arguments:
+  - Config the model arguments in `conf/ProtoAU.yaml`
 
-```
+
+- Train:
+
+```sh
+# train
 nohup python index.py --gpu_id=0 --model=ProtoAU --run_name=ProtoAU --dataset=yelp2018 > ./0.log 2>&1 &
-```
 
-parallel train
-
-```shell
-# step 1
-wandb sweep --project sweep_parallel ./sweep/ProtoAU.yaml
+# Parallel train(optional)
+wandb sweep --project sweep_parallel ./sweep/ProtoAU.yaml # step 1
 wandb agent --count 5 oceanlvr/sweep_parallel/[xxx] # replace the [xxx] with your sweep id (step 1 generated)
 ```
+3. For all metric results, you could see the output in the `./0.log` file or the wandb dashboard.
+4. For visualizing the results, run python3 `visualize/feature.py`.
+
 
 ## Datasets
 
