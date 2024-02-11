@@ -2,16 +2,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from base.graph_recommender import GraphRecommender
-
 from util.sampler import next_batch_pairwise
-from base.torch_interface import TorchGraphInterface
 from util.loss_torch import bpr_loss, l2_reg_loss
 import wandb
-
+from LightGCN import LGCN_Encoder
 
 class ProtoAU(GraphRecommender):
     def __init__(self, conf, training_set, test_set):
         super(ProtoAU, self).__init__(conf, training_set, test_set)
+        # init backbone
         self.model = LGCN_Encoder(
             self.data,
             self.config["embedding_size"],
@@ -32,18 +31,29 @@ class ProtoAU(GraphRecommender):
         user_z = torch.cat([rec_user_emb[u_idx], cl_user_emb[u_idx]], dim=0)
         item_z = torch.cat([rec_item_emb[i_idx], cl_item_emb[i_idx]], dim=0)
 
-        user_loss = self.swav_loss(user_z, user_prototypes, temperature=temperature)
-        item_loss = self.swav_loss(item_z, item_prototypes, temperature=temperature)
+        user_loss = self.proto_loss(user_z, user_prototypes, temperature=temperature)
+        item_loss = self.proto_loss(item_z, item_prototypes, temperature=temperature)
+
         cl_loss = user_loss + item_loss
         return self.config['model_config.proto_reg'] * cl_loss
 
-    def swav_loss(self, z, prototypes, temperature=0.1):
+    def align_loss(x, y, alpha=2):
+        return (x - y).norm(p=2, dim=1).pow(alpha).mean()
+
+    def uniform_loss(x, t=2):
+        return torch.pdist(x, p=2).pow(2).mul(-t).exp().mean().log()
+
+    def proto_loss(self, z, prototypes, temperature=0.1):
         # Compute scores between embeddings and prototypes
         # 3862x64 and 2000x64
         scores = torch.mm(z, prototypes.T)
 
         score_t = scores[: z.size(0) // 2]
         score_s = scores[z.size(0) // 2 :]
+
+        c_t = prototypes(score_t.max(dim=1)[1])
+        c_s = prototypes(score_s.max(dim=1)[1])
+        loss_au = self.align_loss(c_s, c_t) + self.uniform_loss() # here we choose lambda_3=1
 
         # Apply the Sinkhorn-Knopp algorithm to get soft cluster assignments
         q_t = self.sinkhorn_knopp(score_t)
@@ -65,9 +75,9 @@ class ProtoAU(GraphRecommender):
                 dim=1,
             )
         )
-        # SwAV loss is the average of loss_t and loss_s
-        swav_loss = (loss_t + loss_s) / 2
-        return swav_loss
+        # proto loss is the average of loss_t and loss_s
+        proto_loss = (loss_t + loss_s) / 2
+        return proto_loss + loss_au
 
     def sinkhorn_knopp(self, scores, epsilon=0.05, n_iters=3):
         with torch.no_grad():
@@ -164,56 +174,3 @@ class ProtoAU(GraphRecommender):
         u = self.data.get_user_id(u)
         score = torch.matmul(self.user_emb[u], self.item_emb.transpose(0, 1))
         return score.cpu().numpy()
-
-
-class LGCN_Encoder(nn.Module):
-    def __init__(self, data, emb_size, eps, n_layers, prototype_num, layer_cl):
-        super(LGCN_Encoder, self).__init__()
-        self.data = data
-        self.eps = eps
-        self.emb_size = emb_size
-        self.n_layers = n_layers
-        self.norm_adj = data.norm_adj
-        self.prototype_num = prototype_num
-        self.layer_cl = layer_cl
-        self.embedding_dict = self._init_model()
-        self.prototypes_dict = self._init_prototypes()
-        self.sparse_norm_adj = TorchGraphInterface.convert_sparse_mat_to_tensor(self.norm_adj).cuda()
-
-    def _init_model(self):
-        initializer = nn.init.xavier_uniform_
-        embedding_dict = nn.ParameterDict({
-            'user_emb': nn.Parameter(initializer(torch.empty(self.data.user_num, self.emb_size))),
-            'item_emb': nn.Parameter(initializer(torch.empty(self.data.item_num, self.emb_size))),
-        })
-        return embedding_dict
-
-    def _init_prototypes(self):
-        initializer = nn.init.xavier_uniform_
-        prototypes_dict = nn.ParameterDict({
-            'user_prototypes': nn.Parameter(initializer(torch.empty(self.prototype_num, self.emb_size))),
-            'item_prototypes': nn.Parameter(initializer(torch.empty(self.prototype_num, self.emb_size))),
-        })
-        return prototypes_dict
-
-    def forward(self, perturbed=False):
-        ego_embeddings = torch.cat([self.embedding_dict['user_emb'], self.embedding_dict['item_emb']], 0)
-        all_embeddings = []
-        all_embeddings_cl = ego_embeddings
-        for k in range(self.n_layers):
-            ego_embeddings = torch.sparse.mm(self.sparse_norm_adj, ego_embeddings)
-            if perturbed:
-                random_noise = torch.rand_like(ego_embeddings).cuda()
-                ego_embeddings += torch.sign(ego_embeddings) * F.normalize(random_noise, dim=-1) * self.eps
-            all_embeddings.append(ego_embeddings)
-            if k==self.layer_cl-1:
-                all_embeddings_cl = ego_embeddings
-        final_embeddings = torch.stack(all_embeddings, dim=1)
-        final_embeddings = torch.mean(final_embeddings, dim=1)
-        user_all_embeddings, item_all_embeddings = torch.split(final_embeddings, [self.data.user_num, self.data.item_num])
-        user_all_embeddings_cl, item_all_embeddings_cl = torch.split(all_embeddings_cl, [self.data.user_num, self.data.item_num])
-        user_prototypes = self.prototypes_dict['user_prototypes']
-        item_prototypes = self.prototypes_dict['item_prototypes']
-        if perturbed:
-            return user_all_embeddings, item_all_embeddings,user_all_embeddings_cl, item_all_embeddings_cl,user_prototypes,item_prototypes
-        return user_all_embeddings, item_all_embeddings,user_prototypes,item_prototypes
