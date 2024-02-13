@@ -51,8 +51,8 @@ class ProtoAU(GraphRecommender):
         score_t = scores[: z.size(0) // 2]
         score_s = scores[z.size(0) // 2 :]
 
-        c_t = prototypes(score_t.max(dim=1)[1])
-        c_s = prototypes(score_s.max(dim=1)[1])
+        c_t = prototypes[score_t.max(dim=1)[1]]
+        c_s = prototypes[score_s.max(dim=1)[1]]
         loss_au = self.align_loss(c_s, c_t) + self.uniform_loss() # here we choose lambda_3=1
 
         # Apply the Sinkhorn-Knopp algorithm to get soft cluster assignments
