@@ -103,4 +103,4 @@ wandb agent --count 5 oceanlvr/sweep_parallel/[xxx] # replace the [xxx] with you
 
 ## Cite
 
-Please cite our paper ([arXiv:2402.02079](arxiv.org/abs/2402.02079)) if you use this code.
+Please cite our paper [ieeexplore.ieee.org/document/10650218](https://ieeexplore.ieee.org/document/10650218/) if you use this code.
