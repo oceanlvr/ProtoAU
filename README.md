@@ -1,6 +1,6 @@
 # ProtoAU
 
-Pytorch implementation of ProtoAU for recomandation.
+Pytorch implementation of ProtoAU for recommendation.
 We present the **Proto**typical contrastive learning through **A**lignment and **U**niformity for recommendation, which is called **ProtoAU**.
 A contrastive learning method for recommendation that excels in capturing intricate relationships between user and item interactions, which enhance the basic GNN-based recommendation model's generalization ability and robustness.
 
